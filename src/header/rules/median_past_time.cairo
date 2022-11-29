@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
 %lang starknet
 
@@ -10,64 +10,64 @@ from starkware.cairo.common.bool import TRUE, FALSE
 
 from header.model import BlockHeader, BlockHeaderValidationContext
 
-# ------
-# CONSTANTS
-# ------
-const TIMESTAMP_COUNT = 11
-const TIMESTAMP_MEDIAN_INDEX = 6
+// ------
+// CONSTANTS
+// ------
+const TIMESTAMP_COUNT = 11;
+const TIMESTAMP_MEDIAN_INDEX = 6;
 
-# ------
-# STRUCTS
-# ------
-struct Timestamps:
-    member t1 : felt
-    member t2 : felt
-    member t3 : felt
-    member t4 : felt
-    member t5 : felt
-    member t6 : felt
-    member t7 : felt
-    member t8 : felt
-    member t9 : felt
-    member t10 : felt
-    member t11 : felt
-end
+// ------
+// STRUCTS
+// ------
+struct Timestamps {
+    t1: felt,
+    t2: felt,
+    t3: felt,
+    t4: felt,
+    t5: felt,
+    t6: felt,
+    t7: felt,
+    t8: felt,
+    t9: felt,
+    t10: felt,
+    t11: felt,
+}
 
-# ------
-# STORAGE
-# ------
+// ------
+// STORAGE
+// ------
 @storage_var
-func last_11_timestamps() -> (timestamps : Timestamps):
-end
+func last_11_timestamps() -> (timestamps: Timestamps) {
+}
 
-# ------
-# RULE: Median Past Time
-# Description: A timestamp is accepted as valid if it is greater than the median timestamp of previous 11 blocks
-# Ref: https://en.bitcoin.it/wiki/Block_timestamp, https://en.bitcoin.it/wiki/BIP_0113
-# ------
-namespace median_past_time:
-    # This function reverts if the timestamp of the given header if lower than or equal to the median timestamp of previous 11 blocks
-    func assert_rule{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-       ctx : BlockHeaderValidationContext
-    ):
-        alloc_locals
-        let (timestamps : Timestamps) = last_11_timestamps.read()
-        let (local timestamp_median) = internal.compute_timestamps_median(timestamps)
-        local block_timestamp = ctx.block_header.timestamp
+// ------
+// RULE: Median Past Time
+// Description: A timestamp is accepted as valid if it is greater than the median timestamp of previous 11 blocks
+// Ref: https://en.bitcoin.it/wiki/Block_timestamp, https://en.bitcoin.it/wiki/BIP_0113
+// ------
+namespace median_past_time {
+    // This function reverts if the timestamp of the given header if lower than or equal to the median timestamp of previous 11 blocks
+    func assert_rule{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        ctx: BlockHeaderValidationContext
+    ) {
+        alloc_locals;
+        let (timestamps: Timestamps) = last_11_timestamps.read();
+        let (local timestamp_median) = internal.compute_timestamps_median(timestamps);
+        local block_timestamp = ctx.block_header.timestamp;
 
         with_attr error_message(
-                "[rule] Median Past Time: block timestamp ({block_timestamp}) must be higher than the median ({timestamp_median}) of the previous 11 block timestamps"):
-            assert_lt(timestamp_median, block_timestamp)
-        end
-        return ()
-    end
+                "[rule] Median Past Time: block timestamp ({block_timestamp}) must be higher than the median ({timestamp_median}) of the previous 11 block timestamps") {
+            assert_lt(timestamp_median, block_timestamp);
+        }
+        return ();
+    }
 
-    # This function must be called when a block is accepted so that the list of the last 11 timestamps is updated
-    func on_block_accepted{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-       ctx : BlockHeaderValidationContext
-    ):
-        let (timestamps : Timestamps) = last_11_timestamps.read()
-        let new_timestamps : Timestamps = Timestamps(
+    // This function must be called when a block is accepted so that the list of the last 11 timestamps is updated
+    func on_block_accepted{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        ctx: BlockHeaderValidationContext
+    ) {
+        let (timestamps: Timestamps) = last_11_timestamps.read();
+        let new_timestamps: Timestamps = Timestamps(
             timestamps.t2,
             timestamps.t3,
             timestamps.t4,
@@ -79,20 +79,20 @@ namespace median_past_time:
             timestamps.t10,
             timestamps.t11,
             ctx.block_header.timestamp,
-        )
-        last_11_timestamps.write(new_timestamps)
-        return ()
-    end
-end
+        );
+        last_11_timestamps.write(new_timestamps);
+        return ();
+    }
+}
 
-# ------
-# INTERNAL
-# ------
-namespace internal:
-    func compute_timestamps_median{range_check_ptr}(timestamps : Timestamps) -> (
-        median_value : felt
-    ):
-        tempvar timestamp_array : felt* = new (
+// ------
+// INTERNAL
+// ------
+namespace internal {
+    func compute_timestamps_median{range_check_ptr}(timestamps: Timestamps) -> (
+        median_value: felt
+    ) {
+        tempvar timestamp_array: felt* = new (
             timestamps.t1,
             timestamps.t2,
             timestamps.t3,
@@ -103,95 +103,90 @@ namespace internal:
             timestamps.t8,
             timestamps.t9,
             timestamps.t10,
-            timestamps.t11)
+            timestamps.t11);
 
-        let (sorted_timestamp_array : felt*) = sort_unsigned(TIMESTAMP_COUNT, timestamp_array)
-        return (median_value=sorted_timestamp_array[TIMESTAMP_MEDIAN_INDEX])
-    end
+        let (sorted_timestamp_array: felt*) = sort_unsigned(TIMESTAMP_COUNT, timestamp_array);
+        return (median_value=sorted_timestamp_array[TIMESTAMP_MEDIAN_INDEX]);
+    }
 
-    # Implement a naive sort algorithm for an array of felts without using any hint.
-    # Complexity is O(n^2) but this is not a problem as it is used to sort an array of only 11 elements.
-    func sort_unsigned{range_check_ptr}(arr_len : felt, arr : felt*) -> (sorted_array : felt*):
-        alloc_locals
+    // Implement a naive sort algorithm for an array of felts without using any hint.
+    // Complexity is O(n^2) but this is not a problem as it is used to sort an array of only 11 elements.
+    func sort_unsigned{range_check_ptr}(arr_len: felt, arr: felt*) -> (sorted_array: felt*) {
+        alloc_locals;
 
-        let (local sorted_array : felt*) = alloc()
-        sort_unsigned_loop(arr_len, arr, sorted_array)
-        return (sorted_array)
-    end
+        let (local sorted_array: felt*) = alloc();
+        sort_unsigned_loop(arr_len, arr, sorted_array);
+        return (sorted_array,);
+    }
 
-    func sort_unsigned_loop{range_check_ptr}(arr_len : felt, arr : felt*, sorted_array : felt*):
-        if arr_len == 0:
-            return ()
-        end
+    func sort_unsigned_loop{range_check_ptr}(arr_len: felt, arr: felt*, sorted_array: felt*) {
+        if (arr_len == 0) {
+            return ();
+        }
 
-        # find the lowest element out of remaining elements
-        let (lowest_element_index, lowest_element) = internal.find_lowest_element(arr_len, arr)
+        // find the lowest element out of remaining elements
+        let (lowest_element_index, lowest_element) = internal.find_lowest_element(arr_len, arr);
 
-        # push the lowest element to the sorted array
-        assert sorted_array[0] = lowest_element
+        // push the lowest element to the sorted array
+        assert sorted_array[0] = lowest_element;
 
-        # remove the lowest element from the remaining elements
-        let (arr : felt*) = copy_array_without_index(arr_len, arr, lowest_element_index)
+        // remove the lowest element from the remaining elements
+        let (arr: felt*) = copy_array_without_index(arr_len, arr, lowest_element_index);
 
-        sort_unsigned_loop(arr_len - 1, arr, sorted_array + 1)
-        return ()
-    end
+        sort_unsigned_loop(arr_len - 1, arr, sorted_array + 1);
+        return ();
+    }
 
-    func find_lowest_element{range_check_ptr}(arr_len : felt, arr : felt*) -> (
-        lowest_element_index : felt, lowest_element : felt
-    ):
-        return find_lowest_element_loop(0, arr_len, arr, 0)
-    end
+    func find_lowest_element{range_check_ptr}(arr_len: felt, arr: felt*) -> (
+        lowest_element_index: felt, lowest_element: felt
+    ) {
+        return find_lowest_element_loop(0, arr_len, arr, 0);
+    }
 
     func find_lowest_element_loop{range_check_ptr}(
-        index : felt, arr_len : felt, arr : felt*, lowest_element_index : felt
-    ) -> (lowest_element_index : felt, lowest_element : felt):
-        if index == arr_len:
+        index: felt, arr_len: felt, arr: felt*, lowest_element_index: felt
+    ) -> (lowest_element_index: felt, lowest_element: felt) {
+        if (index == arr_len) {
             return (
                 lowest_element_index=lowest_element_index, lowest_element=arr[lowest_element_index]
-            )
-        end
+            );
+        }
 
-        let (is_lower) = is_le(arr[index], arr[lowest_element_index])
-        let new_lowest_element_index = index * is_lower + lowest_element_index * (1 - is_lower)
+        let is_lower = is_le(arr[index], arr[lowest_element_index]);
+        let new_lowest_element_index = index * is_lower + lowest_element_index * (1 - is_lower);
 
-        return find_lowest_element_loop(index + 1, arr_len, arr, new_lowest_element_index)
-    end
+        return find_lowest_element_loop(index + 1, arr_len, arr, new_lowest_element_index);
+    }
 
     func copy_array_without_index{range_check_ptr}(
-        arr_len : felt, arr : felt*, removed_index : felt
-    ) -> (new_arr : felt*):
-        alloc_locals
+        arr_len: felt, arr: felt*, removed_index: felt
+    ) -> (new_arr: felt*) {
+        alloc_locals;
 
-        let (local new_arr : felt*) = alloc()
-        copy_array_without_index_loop(0, arr_len, arr, removed_index, 0, new_arr)
-        return (new_arr)
-    end
+        let (local new_arr: felt*) = alloc();
+        copy_array_without_index_loop(0, arr_len, arr, removed_index, 0, new_arr);
+        return (new_arr,);
+    }
 
     func copy_array_without_index_loop{range_check_ptr}(
-        index : felt,
-        arr_len : felt,
-        arr : felt*,
-        removed_index : felt,
-        new_index : felt,
-        new_arr : felt*,
-    ):
-        if index == arr_len:
-            return ()
-        end
+        index: felt, arr_len: felt, arr: felt*, removed_index: felt, new_index: felt, new_arr: felt*
+    ) {
+        if (index == arr_len) {
+            return ();
+        }
 
-        if index == removed_index:
+        if (index == removed_index) {
             copy_array_without_index_loop(
                 index + 1, arr_len, arr, removed_index, new_index, new_arr
-            )
-            return ()
-        end
+            );
+            return ();
+        }
 
-        assert new_arr[new_index] = arr[index]
+        assert new_arr[new_index] = arr[index];
 
         copy_array_without_index_loop(
             index + 1, arr_len, arr, removed_index, new_index + 1, new_arr
-        )
-        return ()
-    end
-end
+        );
+        return ();
+    }
+}

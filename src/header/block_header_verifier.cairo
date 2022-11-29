@@ -1,5 +1,5 @@
-# SPDX-License-Identifier: MIT
-# Khepri smart contracts written in Cairo v0.1.0 (block_header_verifier.cairo)
+// SPDX-License-Identifier: MIT
+// Khepri smart contracts written in Cairo v0.1.0 (block_header_verifier.cairo)
 
 %lang starknet
 
@@ -10,47 +10,47 @@ from header.model import BlockHeader
 from header.library import BlockHeaderVerifier
 from header.storage import storage
 
-# ------
-# CONSTRUCTOR
-# ------
+// ------
+// CONSTRUCTOR
+// ------
 
 @constructor
-func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-    return BlockHeaderVerifier.constructor()
-end
+func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    return BlockHeaderVerifier.constructor();
+}
 
-# -----
-# VIEWS
-# -----
+// -----
+// VIEWS
+// -----
 
 @view
-func block_header_hash{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func block_header_hash{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     block_height
-) -> (block_header_hash : Uint256):
-    return storage.block_header_hash(block_height)
-end
+) -> (block_header_hash: Uint256) {
+    return storage.block_header_hash(block_height);
+}
 
 @view
-func block_header_by_hash{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    block_header_hash : Uint256
-) -> (block_header : BlockHeader):
-    return storage.block_header_by_hash(block_header_hash)
-end
+func block_header_by_hash{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    block_header_hash: Uint256
+) -> (block_header: BlockHeader) {
+    return storage.block_header_by_hash(block_header_hash);
+}
 
 @view
-func block_header_by_height{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func block_header_by_height{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     block_height
-) -> (block_header : BlockHeader):
-    return storage.block_header_by_height(block_height)
-end
+) -> (block_header: BlockHeader) {
+    return storage.block_header_by_height(block_height);
+}
 
-# ------------------
-# EXTERNAL FUNCTIONS
-# ------------------
+// ------------------
+// EXTERNAL FUNCTIONS
+// ------------------
 
 @external
 func process_block{
-    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr
-}(height : felt, data_len : felt, data : felt*):
-    return BlockHeaderVerifier.process_block(height, data_len, data)
-end
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, range_check_ptr
+}(height: felt, data_len: felt, data: felt*) {
+    return BlockHeaderVerifier.process_block(height, data_len, data);
+}

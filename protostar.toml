@@ -1,23 +1,17 @@
-["protostar.config"]
-protostar_version = "0.2.3"
+[project]
+protostar-version = "0.8.1"
 
-["protostar.project"]
-libs_path = "lib"
+lib-path = "lib"
+cairo-path = ["./lib/cairo_contracts", "src"]
 
-["protostar.shared_command_configs"]
-cairo_path = ["./lib/cairo_contracts/src", "src"]
+[contracts]
+block_header_verifier = [ "./src/header/block_header_verifier.cairo" ]
 
-["protostar.contracts"]
-block_header_verifier = [
-    "./src/header/block_header_verifier.cairo",
-]
+# Shared Configuration Profile
+[profile.devnet.project]
+gateway-url = "http://127.0.0.1:5050/"
+chain-id = 1536727068981429685321
 
-# https://github.com/Shard-Labs/starknet-devnet
-[profile.devnet.protostar.deploy]
-gateway_url="http://127.0.0.1:5050/"
+[profile.testnet.project]
+network = "testnet"
 
-[profile.testnet.protostar.deploy]
-network="alpha-goerli"
-
-[profile.mainnet.protostar.deploy]
-network="alpha-mainnet"
