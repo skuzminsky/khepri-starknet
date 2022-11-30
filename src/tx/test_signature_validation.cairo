@@ -13,7 +13,7 @@ from crypto.sha256d.sha256d import assert_hashes_equal
 from utils.python_utils import setup_python_defs
 
 from tx.transaction import read_transaction
-from tx.signature_validation import write_transaction, validate_transaction_signature
+from tx.signature_validation import write_transaction, validate_transaction_signature, assert_p2pkh
 
 // Transaction example
 //
@@ -48,6 +48,7 @@ func test_signature_pubkey04{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
     with_attr error_message("Transaction values are incorrect.") {
         assert transaction.version = 0x01;
         assert byte_size = 300;
+        assert_p2pkh(transaction);
     }
 
     let (tx, tx_byte_size) = write_transaction(transaction);
@@ -87,6 +88,7 @@ func test_signature_pubkey03{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
     with_attr error_message("Transaction values are incorrect.") {
         assert transaction.version = 0x01;
         assert byte_size = 223;
+        assert_p2pkh(transaction);
     }
 
     let (tx, tx_byte_size) = write_transaction(transaction);
@@ -126,6 +128,7 @@ func test_signature_pubkey02{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
     with_attr error_message("Transaction values are incorrect.") {
         assert transaction.version = 0x01;
         assert byte_size = 224;
+        assert_p2pkh(transaction);
     }
 
     let (tx, tx_byte_size) = write_transaction(transaction);

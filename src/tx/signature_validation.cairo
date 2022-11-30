@@ -176,7 +176,7 @@ func write_transaction{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(transactio
     return (input,input_byte_size);
 }
 
-func _validate_transaction_signature_loop{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(tx_hash: felt*, input: TxInput*, loop_counter: felt) {
+func _validate_transaction_signature_loop{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(tx_hash: Uint256, input: TxInput*, loop_counter: felt) {
     alloc_locals;
     if (loop_counter == 0) {
         return ();
@@ -213,16 +213,16 @@ func _validate_transaction_signature_loop{range_check_ptr, bitwise_ptr: BitwiseB
     let (n01) = read_uint8{reader=reader}();
     assert n01 = 0x01;
 
-    let (r) = array_to_uint256(sig1);
-    let (s) = array_to_uint256(sig2);
+    let (sig_r) = array_to_uint256(sig1);
+    let (sig_s) = array_to_uint256(sig2);
 
     // Public key
     let (key_byte_size_total) = read_uint8{reader=reader}();
     let (key_type) = read_uint8{reader=reader}();
     assert (key_type - 0x04)*(key_type - 0x03)*(key_type - 0x02) = 0;
 
-    local x: Uint256;
-    local y: Uint256;
+    local point_x: Uint256;
+    local point_y: Uint256;
 
     if (key_type == 0x04) {
         assert key_byte_size_total = 0x41;
@@ -232,8 +232,8 @@ func _validate_transaction_signature_loop{range_check_ptr, bitwise_ptr: BitwiseB
         let (key2_bytes) = read_bytes_endian{reader=reader}(0x20);
         let (k2) = array_to_uint256(key2_bytes);
 
-        assert x = k1;
-        assert y = k2;
+        assert point_x = k1;
+        assert point_y = k2;
 
         tempvar range_check_ptr = range_check_ptr;
     } else {
@@ -242,24 +242,21 @@ func _validate_transaction_signature_loop{range_check_ptr, bitwise_ptr: BitwiseB
         let (key1_bytes) = read_bytes_endian{reader=reader}(0x20);
         let (k1) = array_to_uint256(key1_bytes);
 
-        assert x = k1;
-        assert y = Uint256(key_type,0);
+        assert point_x = k1;
+        assert point_y = Uint256(key_type,0);
 
         tempvar range_check_ptr = range_check_ptr;
     }
-
-    let (h) = array_to_uint256(tx_hash);
-    validate_secp256k1_signature_uint256(x,y,h,r,s);
+    
+    validate_secp256k1_signature_uint256(point_x,point_y,tx_hash,sig_r,sig_s);
        
     return _validate_transaction_signature_loop(tx_hash, input + TxInput.SIZE, loop_counter - 1);
 }
 
 func validate_transaction_signature{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(tx_raw: felt*, tx_raw_len, transaction: Transaction) {
-
-    assert_p2pkh(transaction);
-
-    let (tx_hash) = sha256d(tx_raw, tx_raw_len);
-    _validate_transaction_signature_loop(tx_hash, transaction.inputs, transaction.input_count);
+    let (h1) = sha256d(tx_raw, tx_raw_len);
+    let (h2) = array_to_uint256(h1);
+    _validate_transaction_signature_loop(h2, transaction.inputs, transaction.input_count);
     return ();
 }
 
@@ -267,9 +264,9 @@ func _assert_p2pkh_loop(transaction: Transaction, vin_index: felt) {
     if (vin_index == transaction.input_count){
         return ();
     }
-    with_attr error_message("ScriptPubKey must be P2PKH") {
-        tempvar vout = transaction.inputs[vin_index].vout;
-        tempvar pub_key_size = transaction.outputs[vout].script_pub_key_size;
+    with_attr error_message("Must be P2PKH vout script.") {
+        tempvar vout_index = transaction.inputs[vin_index].vout;
+        tempvar pub_key_size = transaction.outputs[vout_index].script_pub_key_size;
         assert pub_key_size = 0x19;
     }
     _assert_p2pkh_loop(transaction, vin_index + 1);
