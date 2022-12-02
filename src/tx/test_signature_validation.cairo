@@ -1,8 +1,3 @@
-//
-// To run only this test suite use:
-// protostar test  --cairo-path=./src target src/**/*_transaction*
-//
-
 %lang starknet
 
 from starkware.cairo.common.alloc import alloc
