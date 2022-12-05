@@ -162,24 +162,24 @@ func write_txinput{writer: Writer, range_check_ptr, bitwise_ptr: BitwiseBuiltin*
     return ();
 }
 
-func write_transaction{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(transaction: Transaction) -> (
+func serialize_transaction{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(transaction: Transaction) -> (
     array: felt*, array_len: felt
 ) {
     alloc_locals;
 
-    let (input) = alloc();
-    let (writer) = init_writer(input);
+    let (tx) = alloc();
+    let (wx) = init_writer(tx);
 
-    write_uint32{writer=writer}(transaction.version);
-    write_txinput{writer=writer}(transaction);
-    write_txoutput{writer=writer}(transaction);
-    write_uint32{writer=writer}(0x00);
-    write_uint32{writer=writer}(0x01);
+    write_uint32{writer=wx}(transaction.version);
+    write_txinput{writer=wx}(transaction);
+    write_txoutput{writer=wx}(transaction);
+    write_uint32{writer=wx}(0x00);
+    write_uint32{writer=wx}(0x01);
 
-    flush_writer(writer);
+    flush_writer(wx);
 
-    tempvar input_byte_size = (writer.head - input) * UINT32_SIZE + writer.offset;
-    return (input, input_byte_size);
+    let tx_len = (wx.head - tx) * UINT32_SIZE + wx.offset;
+    return (tx, tx_len);
 }
 
 func _validate_transaction_signature_loop{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(
@@ -262,9 +262,10 @@ func _validate_transaction_signature_loop{range_check_ptr, bitwise_ptr: BitwiseB
 }
 
 func validate_transaction_signature{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(
-    tx_raw: felt*, tx_raw_len, transaction: Transaction
+    transaction: Transaction
 ) {
-    let (h1) = sha256d(tx_raw, tx_raw_len);
+    let (tx, tx_len) = serialize_transaction(transaction);
+    let (h1) = sha256d(tx, tx_len);
     let (h2) = array_to_uint256(h1);
     _validate_transaction_signature_loop(h2, transaction.inputs, transaction.input_count);
     return ();
@@ -274,10 +275,9 @@ func _assert_p2pkh_loop(transaction: Transaction, vin_index: felt) {
     if (vin_index == transaction.input_count) {
         return ();
     }
-    with_attr error_message("Must be P2PKH vout script.") {
-        tempvar vout_index = transaction.inputs[vin_index].vout;
-        tempvar pub_key_size = transaction.outputs[vout_index].script_pub_key_size;
-        assert pub_key_size = 0x19;
+    with_attr error_message("Invalid P2PKH script.") {
+        let vout_index = transaction.inputs[vin_index].vout;
+        assert 0x19 = transaction.outputs[vout_index].script_pub_key_size;
     }
     _assert_p2pkh_loop(transaction, vin_index + 1);
     return ();

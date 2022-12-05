@@ -8,7 +8,7 @@ from crypto.sha256d.sha256d import assert_hashes_equal
 from utils.python_utils import setup_python_defs
 
 from tx.transaction import read_transaction
-from tx.signature_validation import write_transaction, validate_transaction_signature, assert_p2pkh
+from tx.signature_validation import validate_transaction_signature, assert_p2pkh
 
 // Transaction example
 //
@@ -46,9 +46,7 @@ func test_signature_pubkey04{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
         assert_p2pkh(transaction);
     }
 
-    let (tx, tx_byte_size) = write_transaction(transaction);
-
-    validate_transaction_signature(tx, tx_byte_size, transaction);
+    validate_transaction_signature(transaction);
 
     return ();
 }
@@ -86,9 +84,7 @@ func test_signature_pubkey03{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
         assert_p2pkh(transaction);
     }
 
-    let (tx, tx_byte_size) = write_transaction(transaction);
-
-    validate_transaction_signature(tx, tx_byte_size, transaction);
+    validate_transaction_signature(transaction);
 
     return ();
 }
@@ -125,10 +121,8 @@ func test_signature_pubkey02{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
         assert byte_size = 224;
         assert_p2pkh(transaction);
     }
-
-    let (tx, tx_byte_size) = write_transaction(transaction);
-
-    validate_transaction_signature(tx, tx_byte_size, transaction);
+    
+    validate_transaction_signature(transaction);
 
     return ();
 }

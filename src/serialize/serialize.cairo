@@ -260,26 +260,6 @@ func write_uint32{writer: Writer, range_check_ptr}(source) {
     return ();
 }
 
-func write_uint64_endian{writer: Writer, range_check_ptr}(source: felt) {
-    alloc_locals;
-    let (uint56, uint8_7) = unsigned_div_rem(source, BYTE);
-    let (uint48, uint8_6) = unsigned_div_rem(uint56, BYTE);
-    let (uint40, uint8_5) = unsigned_div_rem(uint48, BYTE);
-    let (uint32, uint8_4) = unsigned_div_rem(uint40, BYTE);
-    let (uint24, uint8_3) = unsigned_div_rem(uint32, BYTE);
-    let (uint16, uint8_2) = unsigned_div_rem(uint24, BYTE);
-    let (uint8_0, uint8_1) = unsigned_div_rem(uint16, BYTE);
-    write_uint8(uint8_0);
-    write_uint8(uint8_1);
-    write_uint8(uint8_2);
-    write_uint8(uint8_3);
-    write_uint8(uint8_4);
-    write_uint8(uint8_5);
-    write_uint8(uint8_6);
-    write_uint8(uint8_7);
-    return ();
-}
-
 func write_uint64{writer: Writer, range_check_ptr}(source: felt) {
     alloc_locals;
     let (uint56, uint8_0) = unsigned_div_rem(source, BYTE);
