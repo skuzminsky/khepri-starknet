@@ -43,10 +43,10 @@ from serialize.serialize import (
     read_hash,
 )
 
-func array_to_uint256{range_check_ptr}(input: felt*) -> (res: Uint256) {
-    let h = input[3] + input[2] * 2 ** 32 + input[1] * 2 ** 64 + input[0] * 2 ** 96;
-    let l = input[7] + input[6] * 2 ** 32 + input[5] * 2 ** 64 + input[4] * 2 ** 96;
-    return (Uint256(l, h),);
+func word32_to_uint256{range_check_ptr}(input: felt*) -> (res: Uint256) {
+    return (res=Uint256(
+        low = input[7] + input[6] * 2 ** 32 + input[5] * 2 ** 64 + input[4] * 2 ** 96, 
+        high= input[3] + input[2] * 2 ** 32 + input[1] * 2 ** 64 + input[0] * 2 ** 96));
 }
 
 func get_ecpoint_from_pubkey{range_check_ptr}(x: Uint256, y: Uint256) -> (ec: EcPoint) {
@@ -221,8 +221,8 @@ func _validate_transaction_signature_loop{range_check_ptr, bitwise_ptr: BitwiseB
     let (n01) = read_uint8{reader=reader}();
     assert n01 = 0x01;
 
-    let (sig_r) = array_to_uint256(sig1);
-    let (sig_s) = array_to_uint256(sig2);
+    let (sig_r) = word32_to_uint256(sig1);
+    let (sig_s) = word32_to_uint256(sig2);
 
     // Public key
     let (key_byte_size_total) = read_uint8{reader=reader}();
@@ -236,9 +236,9 @@ func _validate_transaction_signature_loop{range_check_ptr, bitwise_ptr: BitwiseB
         assert key_byte_size_total = 0x41;
 
         let (key1_bytes) = read_bytes_endian{reader=reader}(0x20);
-        let (k1) = array_to_uint256(key1_bytes);
+        let (k1) = word32_to_uint256(key1_bytes);
         let (key2_bytes) = read_bytes_endian{reader=reader}(0x20);
-        let (k2) = array_to_uint256(key2_bytes);
+        let (k2) = word32_to_uint256(key2_bytes);
 
         assert point_x = k1;
         assert point_y = k2;
@@ -248,7 +248,7 @@ func _validate_transaction_signature_loop{range_check_ptr, bitwise_ptr: BitwiseB
         assert key_byte_size_total = 0x21;
 
         let (key1_bytes) = read_bytes_endian{reader=reader}(0x20);
-        let (k1) = array_to_uint256(key1_bytes);
+        let (k1) = word32_to_uint256(key1_bytes);
 
         assert point_x = k1;
         assert point_y = Uint256(key_type, 0);
@@ -266,7 +266,7 @@ func validate_transaction_signature{range_check_ptr, bitwise_ptr: BitwiseBuiltin
 ) {
     let (tx, tx_len) = serialize_transaction(transaction);
     let (h1) = sha256d(tx, tx_len);
-    let (h2) = array_to_uint256(h1);
+    let (h2) = word32_to_uint256(h1);
     _validate_transaction_signature_loop(h2, transaction.inputs, transaction.input_count);
     return ();
 }
